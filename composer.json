@@ -1,0 +1,14 @@
+{
+    "name": "webcrawler/html-to-pdf",
+    "description": "A command line PHP script to convert websites to PDF",
+    "type": "project",
+    "require": {
+        "mpdf/mpdf": "^8.1",
+        "chrome-php/chrome": "^1.9"
+    },
+    "autoload": {
+        "psr-4": {
+            "WebCrawler\\": "src/"
+        }
+    }
+}
