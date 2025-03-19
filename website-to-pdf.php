@@ -52,7 +52,7 @@ try {
 
     // Create a browser instance
     $browser = $browserFactory->createBrowser([
-        'windowSize' => [1280, 1024],
+        'windowSize' => [1920, 1080],
         'enableImages' => true,
         'ignoreCertificateErrors' => true,
         'headers' => [
@@ -134,11 +134,42 @@ try {
         // Wait additional time for JavaScript execution if specified
         $waitTime = isset($options['wait']) ? $options['wait'] : 2;
         echo "Waiting {$waitTime} seconds for JavaScript execution...\n";
-        sleep($waitTime);
+		sleep($waitTime);
+
+		//click
+		try{
+			$page->mouse()->find('button[aria-label="Current project sidebar"]')->click();
+		} catch (Exception $e) {
+			echo "Error: " . $e->getMessage() . "\n";
+		}
+		sleep(1);
 
         // Get page content
-        $html = $page->getHtml();
+        //$html = $page->getHtml();
+		$pdf_options = [
+			'landscape'           => true,             // default to false
+			'printBackground'     => true,             // default to false
+			//'displayHeaderFooter' => true,             // default to false
+			//'preferCSSPageSize'   => true,             // default to false (reads parameters directly from @page)
+			//'marginTop'           => 0.0,              // defaults to ~0.4 (must be a float, value in inches)
+			//'marginBottom'        => 1.4,              // defaults to ~0.4 (must be a float, value in inches)
+			//'marginLeft'          => 5.0,              // defaults to ~0.4 (must be a float, value in inches)
+			//'marginRight'         => 1.0,              // defaults to ~0.4 (must be a float, value in inches)
+			//'paperWidth'          => 6.0,              // defaults to 8.5 (must be a float, value in inches)
+			//'paperHeight'         => 6.0,              // defaults to 11.0 (must be a float, value in inches)
+			//'headerTemplate'      => '<div>foo</div>', // see details above
+			//'footerTemplate'      => '<div>foo</div>', // see details above
+			//'scale'               => 1.2,              // defaults to 1.0 (must be a float)
+		];
 
+		//save screenshot
+		$screenshot = $page->screenshot();
+		$screenshot->saveToFile($outputFile . '.png');
+
+		$pdf = $page->pdf($pdf_options);
+		echo "saving to file $outputFile\n";
+		$pdf->saveToFile($outputFile);
+		echo "done\n";
         // Close browser
         $browser->close();
 
@@ -153,29 +184,32 @@ try {
     // echo $html;
     // exit;
 
-    echo "Converting to PDF...\n";
 
-    // Create mPDF instance
-    $mpdf = new Mpdf([
-        'mode' => 'utf-8',
-        'format' => 'A4',
-        'margin_left' => 10,
-        'margin_right' => 10,
-        'margin_top' => 10,
-        'margin_bottom' => 10,
-    ]);
+exit;
 
-    // Set document properties
-    $mpdf->SetTitle("Web page: $url");
-    $mpdf->SetAuthor("Website to PDF Converter");
+    // echo "Converting to PDF...\n";
 
-    // Write HTML to PDF
-    $mpdf->WriteHTML($html);
+    // // Create mPDF instance
+    // $mpdf = new Mpdf([
+    //     'mode' => 'utf-8',
+    //     'format' => 'A4',
+    //     'margin_left' => 10,
+    //     'margin_right' => 10,
+    //     'margin_top' => 10,
+    //     'margin_bottom' => 10,
+    // ]);
 
-    // Save the PDF
-    $mpdf->Output($outputFile, 'F');
+    // // Set document properties
+    // $mpdf->SetTitle("Web page: $url");
+    // $mpdf->SetAuthor("Website to PDF Converter");
 
-    echo "PDF saved successfully as $outputFile\n";
+    // // Write HTML to PDF
+    // $mpdf->WriteHTML($html);
+
+    // // Save the PDF
+    // $mpdf->Output($outputFile, 'F');
+
+    // echo "PDF saved successfully as $outputFile\n";
 
 } catch (Exception $e) {
     echo "Error: " . $e->getMessage() . "\n";
