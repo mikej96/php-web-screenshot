@@ -5,7 +5,6 @@ require __DIR__ . '/vendor/autoload.php';
 
 use HeadlessChromium\BrowserFactory;
 use HeadlessChromium\Cookies\Cookie;
-use Mpdf\Mpdf;
 
 // Parse command line arguments
 if ($argc < 2) {
@@ -15,10 +14,13 @@ if ($argc < 2) {
     echo "  --cookie-file=<file.json>  JSON file containing cookies exported from browser\n";
     echo "  --user-agent=<string>      Custom user agent string\n";
     echo "  --wait=<seconds>           Wait time in seconds after page load (default: 2)\n";
+    echo "  --window-width=<pixels>    Browser window width in pixels (default: 1920)\n";
+    echo "  --window-height=<pixels>   Browser window height in pixels (default: 1080)\n";
     echo "\nExamples:\n";
     echo "  php website-to-pdf.php https://example.com --output=example.pdf\n";
     echo "  php website-to-pdf.php https://example.com --cookie-file=cookies.json\n";
     echo "  php website-to-pdf.php https://example.com --wait=5\n";
+    echo "  php website-to-pdf.php https://example.com --window-width=1366 --window-height=768\n";
     exit(1);
 }
 
@@ -35,6 +37,10 @@ for ($i = 2; $i < $argc; $i++) {
         $options['user-agent'] = substr($argv[$i], 13);
     } elseif (strpos($argv[$i], '--wait=') === 0) {
         $options['wait'] = (int)substr($argv[$i], 7);
+    } elseif (strpos($argv[$i], '--window-width=') === 0) {
+        $options['window-width'] = (int)substr($argv[$i], 15);
+    } elseif (strpos($argv[$i], '--window-height=') === 0) {
+        $options['window-height'] = (int)substr($argv[$i], 16);
     } elseif (strpos($argv[$i], '--') !== 0) {
         // Backward compatibility for just providing output filename
         $options['output'] = $argv[$i];
@@ -50,9 +56,13 @@ try {
     // Create browser factory
     $browserFactory = new BrowserFactory();
 
+    // Get window dimensions from options or use defaults
+    $windowWidth = isset($options['window-width']) ? $options['window-width'] : 1920;
+    $windowHeight = isset($options['window-height']) ? $options['window-height'] : 1080;
+
     // Create a browser instance
     $browser = $browserFactory->createBrowser([
-        'windowSize' => [1920, 1080],
+        'windowSize' => [$windowWidth, $windowHeight],
         'enableImages' => true,
         'ignoreCertificateErrors' => true,
         'headers' => [
@@ -136,9 +146,9 @@ try {
         echo "Waiting {$waitTime} seconds for JavaScript execution...\n";
 		sleep($waitTime);
 
-		//click
+		//bitbucket cloud specific
+        //special code to collapse bitbucket sidebar and build menu.
 		try{
-            //bitbucket cloud specific
 			$page->mouse()->find('button[aria-label=\"Current project sidebar\"]')->click();
             usleep(500);
             $page->mouse()->find('div[data-testid=\"emptyChecksCountHeader\"]')->click();
@@ -149,21 +159,26 @@ try {
 
         // Get page content
         //$html = $page->getHtml();
-		$pdf_options = [
-			'landscape'           => true,             // default to false
-			'printBackground'     => true,             // default to false
-			//'displayHeaderFooter' => true,             // default to false
-			//'preferCSSPageSize'   => true,             // default to false (reads parameters directly from @page)
-			//'marginTop'           => 0.0,              // defaults to ~0.4 (must be a float, value in inches)
-			//'marginBottom'        => 1.4,              // defaults to ~0.4 (must be a float, value in inches)
-			//'marginLeft'          => 5.0,              // defaults to ~0.4 (must be a float, value in inches)
-			//'marginRight'         => 1.0,              // defaults to ~0.4 (must be a float, value in inches)
-			//'paperWidth'          => 6.0,              // defaults to 8.5 (must be a float, value in inches)
-			//'paperHeight'         => 6.0,              // defaults to 11.0 (must be a float, value in inches)
-			//'headerTemplate'      => '<div>foo</div>', // see details above
-			//'footerTemplate'      => '<div>foo</div>', // see details above
-			//'scale'               => 1.2,              // defaults to 1.0 (must be a float)
-		];
+
+        //Can generate PDF if we want.
+		// $pdf_options = [
+		// 	'landscape'           => true,             // default to false
+		// 	'printBackground'     => true,             // default to false
+		// 	//'displayHeaderFooter' => true,             // default to false
+		// 	//'preferCSSPageSize'   => true,             // default to false (reads parameters directly from @page)
+		// 	//'marginTop'           => 0.0,              // defaults to ~0.4 (must be a float, value in inches)
+		// 	//'marginBottom'        => 1.4,              // defaults to ~0.4 (must be a float, value in inches)
+		// 	//'marginLeft'          => 5.0,              // defaults to ~0.4 (must be a float, value in inches)
+		// 	//'marginRight'         => 1.0,              // defaults to ~0.4 (must be a float, value in inches)
+		// 	//'paperWidth'          => 6.0,              // defaults to 8.5 (must be a float, value in inches)
+		// 	//'paperHeight'         => 6.0,              // defaults to 11.0 (must be a float, value in inches)
+		// 	//'headerTemplate'      => '<div>foo</div>', // see details above
+		// 	//'footerTemplate'      => '<div>foo</div>', // see details above
+		// 	//'scale'               => 1.2,              // defaults to 1.0 (must be a float)
+		// ];
+        // $pdf = $page->pdf($pdf_options);
+		// echo "saving to file $outputFile\n";
+		// $pdf->saveToFile($outputFile);
 
 		//save screenshot as a full page screenshot
 		$screenshot = $page->screenshot([
@@ -173,50 +188,20 @@ try {
         ]);
 		$screenshot->saveToFile($outputFile . '.png');
 
-		// $pdf = $page->pdf($pdf_options);
-		// echo "saving to file $outputFile\n";
-		// $pdf->saveToFile($outputFile);
-		echo "done\n";
+
+		echo "Done!\n";
         // Close browser
         $browser->close();
+        exit(0);
 
     } catch (Exception $e) {
         if (isset($browser)) {
             $browser->close();
         }
         throw $e;
+        exit(1);
     }
 
-    // For debugging: Uncomment to see the HTML
-    // echo $html;
-    // exit;
-
-
-exit;
-
-    // echo "Converting to PDF...\n";
-
-    // // Create mPDF instance
-    // $mpdf = new Mpdf([
-    //     'mode' => 'utf-8',
-    //     'format' => 'A4',
-    //     'margin_left' => 10,
-    //     'margin_right' => 10,
-    //     'margin_top' => 10,
-    //     'margin_bottom' => 10,
-    // ]);
-
-    // // Set document properties
-    // $mpdf->SetTitle("Web page: $url");
-    // $mpdf->SetAuthor("Website to PDF Converter");
-
-    // // Write HTML to PDF
-    // $mpdf->WriteHTML($html);
-
-    // // Save the PDF
-    // $mpdf->Output($outputFile, 'F');
-
-    // echo "PDF saved successfully as $outputFile\n";
 
 } catch (Exception $e) {
     echo "Error: " . $e->getMessage() . "\n";
