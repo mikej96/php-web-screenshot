@@ -11,7 +11,7 @@ use Mpdf\Mpdf;
 if ($argc < 2) {
     echo "Usage: php website-to-pdf.php <url> [options]\n";
     echo "Options:\n";
-    echo "  --output=<filename.pdf>    Output filename (default: domain.pdf)\n";
+    echo "  --output=<filename.png>    Output filename (default: domain.png)\n";
     echo "  --cookie-file=<file.json>  JSON file containing cookies exported from browser\n";
     echo "  --user-agent=<string>      Custom user agent string\n";
     echo "  --wait=<seconds>           Wait time in seconds after page load (default: 2)\n";
@@ -42,7 +42,7 @@ for ($i = 2; $i < $argc; $i++) {
 }
 
 // Set default output filename based on the URL if not provided
-$outputFile = isset($options['output']) ? $options['output'] : parse_url($url, PHP_URL_HOST) . '.pdf';
+$outputFile = isset($options['output']) ? $options['output'] : parse_url($url, PHP_URL_HOST);
 
 try {
     echo "Preparing to fetch content from $url...\n";
@@ -138,7 +138,10 @@ try {
 
 		//click
 		try{
-			$page->mouse()->find('button[aria-label="Current project sidebar"]')->click();
+            //bitbucket cloud specific
+			$page->mouse()->find('button[aria-label=\"Current project sidebar\"]')->click();
+            usleep(500);
+            $page->mouse()->find('div[data-testid=\"emptyChecksCountHeader\"]')->click();
 		} catch (Exception $e) {
 			echo "Error: " . $e->getMessage() . "\n";
 		}
@@ -162,13 +165,17 @@ try {
 			//'scale'               => 1.2,              // defaults to 1.0 (must be a float)
 		];
 
-		//save screenshot
-		$screenshot = $page->screenshot();
+		//save screenshot as a full page screenshot
+		$screenshot = $page->screenshot([
+            'captureBeyondViewport' => true,
+            'clip' => $page->getFullPageClip(),
+            'format' => 'png', // default to 'png' - possible values: 'png', 'jpeg', 'webp'
+        ]);
 		$screenshot->saveToFile($outputFile . '.png');
 
-		$pdf = $page->pdf($pdf_options);
-		echo "saving to file $outputFile\n";
-		$pdf->saveToFile($outputFile);
+		// $pdf = $page->pdf($pdf_options);
+		// echo "saving to file $outputFile\n";
+		// $pdf->saveToFile($outputFile);
 		echo "done\n";
         // Close browser
         $browser->close();

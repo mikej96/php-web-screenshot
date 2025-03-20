@@ -1,6 +1,6 @@
 # Website to PDF Converter
 
-A simple PHP command-line tool that converts websites to PDF documents with full JavaScript support.
+A simple PHP command-line tool that screenshots websites with full JavaScript support.
 
 ## Requirements
 
@@ -17,13 +17,13 @@ A simple PHP command-line tool that converts websites to PDF documents with full
 ## Usage
 
 ```bash
-php website-to-pdf.php <url> [options]
+php website-to-png.php <url> [options]
 ```
 
 ### Options
 
 ```
---output=<filename.pdf>    Output filename (default: domain.pdf)
+--output=<filename.png>    Output filename (default: domain.png)
 --cookie-file=<file.json>  JSON file containing cookies exported from browser
 --user-agent=<string>      Custom user agent string
 --wait=<seconds>           Wait time in seconds after page load (default: 2)
@@ -34,7 +34,7 @@ php website-to-pdf.php <url> [options]
 You can specify how long to wait for JavaScript execution with the `--wait` option:
 
 ```bash
-php website-to-pdf.php https://example.com --wait=5
+php website-to-png.php https://example.com --wait=5
 ```
 
 ### Authentication with Browser Cookies
@@ -47,19 +47,19 @@ Since this tool uses a headless Chrome browser, the best way to handle authentic
 4. Use the `--cookie-file` option:
 
 ```bash
-php website-to-pdf.php https://example.com --cookie-file=cookies.json
+php website-to-png.php https://example.com --cookie-file=cookies.json
 ```
 
 ### Examples
 
 Convert a website (default 2-second wait for JavaScript):
 ```bash
-php website-to-pdf.php https://example.com
+php website-to-png.php https://example.com
 ```
 
 Convert a website and wait longer for JavaScript execution:
 ```bash
-php website-to-pdf.php https://example.com --wait=10 --output=example-site.pdf
+php website-to-png.php https://example.com --wait=10 --output=example-site.png
 ```
 
 ## How it works
@@ -67,11 +67,11 @@ php website-to-pdf.php https://example.com --wait=10 --output=example-site.pdf
 This script uses Chrome headless browser to:
 1. Navigate to the specified URL
 2. Wait for the page to fully render with JavaScript
-3. Capture the complete HTML
-4. Convert the HTML to PDF using the mPDF library
+3. Capture a full page screenshot. 
 
 ## Limitations
 
 - Some websites actively block headless browsers
 - Very complex websites may still not render perfectly
 - Login sessions expire based on the same rules as in your normal browser
+- You must log in with your normal browser and export the cookies to a json file. 
