@@ -1,4 +1,4 @@
-# Website to PDF Converter
+# CLI Website Screenshot Utility
 
 A simple PHP command-line tool that screenshots websites with full JavaScript support.
 
