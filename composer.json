@@ -1,6 +1,6 @@
 {
-    "name": "webcrawler/html-to-pdf",
-    "description": "A command line PHP script to convert websites to PDF",
+    "name": "mikej_96/website-to-png",
+    "description": "A command line PHP script to convert websites to PNG",
     "type": "project",
     "require": {
         "chrome-php/chrome": "^1.9"
