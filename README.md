@@ -1,77 +1,118 @@
-# CLI Website Screenshot Utility
+# PHP Website Screenshot
 
-A simple PHP command-line tool that screenshots websites with full JavaScript support.
+A PHP library for capturing screenshots of websites using headless Chrome.
 
 ## Requirements
 
-- PHP 7.4 or higher
-- Composer
-- Chrome/Chromium (required for headless browser functionality)
+- PHP 7.2 or higher
+- Chrome/Chromium installed on the server
+- [chrome-php/chrome](https://github.com/chrome-php/chrome) package
 
 ## Installation
 
-1. Clone this repository
-2. Run `composer install` to install dependencies
-3. Make sure Chrome or Chromium is installed
+1. Clone this repository or copy the `WebsiteScreenshot.php` file to your project
+2. Install dependencies:
+
+```bash
+composer require chrome-php/chrome
+```
 
 ## Usage
 
-```bash
-php website-to-png.php <url> [options]
+### Basic Usage
+
+```php
+<?php
+// Include the class
+require_once 'WebsiteScreenshot.php';
+
+// Create a new screenshot instance
+$screenshot = new WebsiteScreenshot('https://example.com');
+
+// Capture the screenshot
+try {
+    $screenshotPath = $screenshot->capture();
+    echo "Screenshot saved to: $screenshotPath";
+} catch (Exception $e) {
+    echo "Error: " . $e->getMessage();
+}
 ```
 
-### Options
+### Advanced Usage
 
-```
---output=<filename.png>    Output filename (default: domain.png)
---cookie-file=<file.json>  JSON file containing cookies exported from browser
---user-agent=<string>      Custom user agent string
---wait=<seconds>           Wait time in seconds after page load (default: 2)
-```
+You can customize the screenshot with various options:
 
-### Setting Wait Time for JavaScript
+```php
+<?php
+require_once 'WebsiteScreenshot.php';
 
-You can specify how long to wait for JavaScript execution with the `--wait` option:
+// Create with options in constructor
+$screenshot = new WebsiteScreenshot('https://example.com', [
+    'output' => 'my-screenshot',      // Output filename (without extension)
+    'wait' => 5,                      // Wait 5 seconds after page load
+    'window-width' => 1366,           // Custom window width
+    'window-height' => 768,           // Custom window height
+]);
 
-```bash
-php website-to-png.php https://example.com --wait=5
-```
+// Or set options using fluent methods
+$screenshot = new WebsiteScreenshot('https://example.com');
+$screenshot->setOutput('my-screenshot')
+           ->setWaitTime(5)
+           ->setWindowSize(1366, 768)
+           ->setUserAgent('Mozilla/5.0 (iPhone; CPU iPhone OS 13_2_3 like Mac OS X)');
 
-### Authentication with Browser Cookies
-
-Since this tool uses a headless Chrome browser, the best way to handle authentication is through cookies:
-
-1. Install a cookie export extension in your browser (like "EditThisCookie" for Chrome)
-2. Log in to the website in your browser
-3. Export the cookies to a JSON file
-4. Use the `--cookie-file` option:
-
-```bash
-php website-to-png.php https://example.com --cookie-file=cookies.json
+// Capture
+$screenshotPath = $screenshot->capture();
 ```
 
-### Examples
+### Using Cookies
 
-Convert a website (default 2-second wait for JavaScript):
-```bash
-php website-to-png.php https://example.com
+You can authenticate with websites by providing a cookie file:
+
+```php
+<?php
+require_once 'WebsiteScreenshot.php';
+
+$screenshot = new WebsiteScreenshot('https://example.com');
+$screenshot->setCookieFile('path/to/cookies.json');
+$screenshotPath = $screenshot->capture();
 ```
 
-Convert a website and wait longer for JavaScript execution:
-```bash
-php website-to-png.php https://example.com --wait=10 --output=example-site.png
+The cookie file should be in JSON format as exported from a browser.
+
+### Integration with External Applications
+
+To integrate with your existing PHP application:
+
+1. Copy the `WebsiteScreenshot.php` file to your project
+2. Make sure dependencies are installed via Composer
+3. Create an instance of the class and call methods as needed
+
+Example integration with a framework controller:
+
+```php
+<?php
+namespace App\Controllers;
+
+class ScreenshotController
+{
+    public function takeScreenshot($url)
+    {
+        require_once 'path/to/WebsiteScreenshot.php';
+
+        $screenshot = new \WebsiteScreenshot($url);
+        $screenshot->setOutput('screenshots/' . uniqid());
+
+        try {
+            $path = $screenshot->capture();
+            return ['status' => 'success', 'path' => $path];
+        } catch (\Exception $e) {
+            return ['status' => 'error', 'message' => $e->getMessage()];
+        }
+    }
+}
 ```
 
-## How it works
+## License
 
-This script uses Chrome headless browser to:
-1. Navigate to the specified URL
-2. Wait for the page to fully render with JavaScript
-3. Capture a full page screenshot. 
-
-## Limitations
-
-- Some websites actively block headless browsers
-- Very complex websites may still not render perfectly
-- Login sessions expire based on the same rules as in your normal browser
-- You must log in with your normal browser and export the cookies to a json file. 
+MIT
